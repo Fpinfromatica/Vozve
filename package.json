@@ -1,0 +1,29 @@
+{
+  "name": "vozve",
+  "version": "1.0.0",
+  "description": "VozVE - News app for Venezuela without censorship",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend",
+    "mobile"
+  ],
+  "scripts": {
+    "install-all": "npm install",
+    "dev": "npm run dev --workspaces",
+    "build": "npm run build --workspaces",
+    "test": "npm test --workspaces",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "keywords": [
+    "venezuela",
+    "news",
+    "journalism",
+    "live-streaming",
+    "social"
+  ],
+  "author": "VozVE Team",
+  "license": "MIT"
+}
