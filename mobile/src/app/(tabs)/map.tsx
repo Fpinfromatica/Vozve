@@ -55,7 +55,7 @@ export default function MapScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Tarjeta Flotante Inferior (Reporte Activo Seleccionado) */}
+      {/* Tarjeta Flotante Inferior */}
       <View style={styles.floatingCard}>
         <View style={styles.cardHeader}>
           <View style={[styles.badge, { backgroundColor: 'rgba(255, 59, 48, 0.15)' }]}>
@@ -85,28 +85,41 @@ export default function MapScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: UI_COLORS.background },
-  mapPlaceholder: { ...StyleSheet.StyleSheet.absoluteFill, backgroundColor: '#111827', justifyContent: 'center', alignItems: 'center' },
+  mapPlaceholder: { 
+   ...StyleSheet.absoluteFill.
+    backgroundColor: '#111827', 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
   mapIconBg: { transform: [{ scale: 4 }] },
   
-  // Estilos de los Marcadores (Puntos calientes en el mapa)
   markerWrapper: { position: 'absolute', alignItems: 'center', justifyContent: 'center', width: 40, height: 40 },
-  markerDot: { width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignMiss: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, elevation: 5 },
-  markerPulse: { position: 'absolute', width: 40, height: 40, borderRadius: 20, opacity: 0.25, transform: [{ scale: 1 }] },
+  markerDot: { 
+    width: 24, 
+    height: 24, 
+    borderRadius: 12, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: 0.25, 
+    shadowRadius: 3.84, 
+    elevation: 5 
+  },
+  markerPulse: { position: 'absolute', width: 40, height: 40, borderRadius: 20, opacity: 0.25 },
 
-  // Buscador
-  searchContainer: { position: 'absolute', top: 60, left: 16, right: 16, height: 50, backgroundColor: UI_COLORS.surface, borderRadius: 25, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, borderWidth: 1, borderColor: UI_COLORS.border, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 8 },
+  searchContainer: { position: 'absolute', top: 60, left: 16, right: 16, height: 50, backgroundColor: UI_COLORS.surface, borderRadius: 25, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, borderWidth: 1, borderColor: UI_COLORS.border },
   searchIcon: { marginRight: 10 },
   searchInput: { flex: 1, color: UI_COLORS.text, fontSize: 14, height: '100%' },
   filterButton: { padding: 4 },
 
-  // Tarjeta Flotante Inferior
-  floatingCard: { position: 'absolute', bottom: 24, left: 16, right: 16, backgroundColor: UI_COLORS.surface, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: UI_COLORS.border, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.4, shadowRadius: 6, elevation: 12 },
+  floatingCard: { position: 'absolute', bottom: 24, left: 16, right: 16, backgroundColor: UI_COLORS.surface, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: UI_COLORS.border },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   badgeText: { fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
   cardTime: { color: UI_COLORS.textMuted, fontSize: 11 },
   cardTitle: { color: UI_COLORS.text, fontSize: 15, fontWeight: 'bold', marginBottom: 6 },
-  cardLocation: { color: UI_COLORS.textMuted, fontSize: 12, marginBottom: 14, flexDirection: 'row', alignItems: 'center' },
+  cardLocation: { color: UI_COLORS.textMuted, fontSize: 12, marginBottom: 14 },
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   actionButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255, 184, 0, 0.08)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255, 184, 0, 0.2)' },
   actionText: { color: UI_COLORS.primary, fontSize: 12, fontWeight: '600', marginLeft: 6 },
