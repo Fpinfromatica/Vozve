@@ -85,8 +85,8 @@ export default function MapScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: UI_COLORS.background },
-  mapPlaceholder: { 
-   ...StyleSheet.absoluteFill.
+   mapPlaceholder: { 
+    ...StyleSheet.absoluteFillObject, 
     backgroundColor: '#111827', 
     justifyContent: 'center', 
     alignItems: 'center' 
