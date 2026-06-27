@@ -85,7 +85,7 @@ export default function MapScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: UI_COLORS.background },
-  mapPlaceholder: { ...StyleSheet.absoluteFillObject, backgroundColor: '#111827', justifyContent: 'center', alignItems: 'center' },
+  mapPlaceholder: { ...StyleSheet.StyleSheet.absoluteFill, backgroundColor: '#111827', justifyContent: 'center', alignItems: 'center' },
   mapIconBg: { transform: [{ scale: 4 }] },
   
   // Estilos de los Marcadores (Puntos calientes en el mapa)
