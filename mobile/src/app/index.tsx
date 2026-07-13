@@ -1,10 +1,10 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 
-export default function MapTab() {
+export default function Index() {
   return (
     <View>
-      <Text>Map placeholder</Text>
+      <Text>App Index / Splash placeholder</Text>
     </View>
   );
 }

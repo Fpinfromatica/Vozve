@@ -1,10 +1,10 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 
-export default function MapTab() {
+export default function Register() {
   return (
     <View>
-      <Text>Map placeholder</Text>
+      <Text>Register placeholder</Text>
     </View>
   );
 }
