@@ -1,5 +1,11 @@
-import React from 'react';
+import { Stack } from 'expo-router';
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+export default function RootLayout() {
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="welcome" />
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(tabs)" />
+    </Stack>
+  );
 }
