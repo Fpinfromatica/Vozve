@@ -12,16 +12,23 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-const isWeb = typeof window !== 'undefined';
+const isServer = typeof window === 'undefined';
+const isWeb = !isServer && typeof document !== 'undefined';
+
+const storage = isServer
+  ? undefined
+  : isWeb
+    ? window.localStorage
+    : AsyncStorage;
 
 export const supabase = createClient(
   supabaseUrl,
   supabaseAnonKey,
   {
     auth: {
-      storage: isWeb ? undefined : AsyncStorage,
-      autoRefreshToken: true,
-      persistSession: true,
+      storage,
+      autoRefreshToken: !isServer,
+      persistSession: !isServer,
       detectSessionInUrl: false,
     },
   }
