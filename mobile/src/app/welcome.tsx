@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, StatusBar, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 
 export default function WelcomeScreen() {
@@ -13,12 +13,12 @@ export default function WelcomeScreen() {
     >
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       
-      <View style={styles.overlay}>
-        {/* Espaciador central para dejar ver el logo del fondo */}
-        <View style={styles.spacer} />
+      <SafeAreaView style={styles.safeArea}>
+        {/* Espacio libre superior para que tu logo e imagen de fondo se vean al 100% */}
+        <View style={styles.topSpacer} />
 
-        {/* Sección inferior con botones de acción */}
-        <View style={styles.footer}>
+        {/* Botones de acción pegados en la parte inferior */}
+        <View style={styles.buttonContainer}>
           <TouchableOpacity 
             style={styles.primaryButton}
             onPress={() => router.push('/(auth)/login')}
@@ -35,7 +35,7 @@ export default function WelcomeScreen() {
             <Text style={styles.secondaryButtonText}>CREAR CUENTA</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
     </ImageBackground>
   );
 }
@@ -46,33 +46,31 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  overlay: {
+  safeArea: {
     flex: 1,
-    backgroundColor: 'rgba(10, 13, 20, 0.45)', // Sutil sombreado para legibilidad
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     paddingHorizontal: 24,
-    paddingVertical: 50,
-    maxWidth: 480,
-    width: '100%',
-    alignSelf: 'center',
+    paddingBottom: 40,
   },
-  spacer: {
+  topSpacer: {
     flex: 1,
   },
-  footer: {
+  buttonContainer: {
     width: '100%',
+    maxWidth: 400,
+    alignSelf: 'center',
     gap: 12,
   },
   primaryButton: {
     backgroundColor: '#e5b150',
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     shadowColor: '#e5b150',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
+    shadowOpacity: 0.4,
     shadowRadius: 8,
-    elevation: 5,
+    elevation: 6,
   },
   primaryButtonText: {
     color: '#0a0d14',
@@ -81,16 +79,16 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   secondaryButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(229, 177, 80, 0.5)',
-    paddingVertical: 16,
-    borderRadius: 12,
+    backgroundColor: 'rgba(10, 13, 20, 0.75)',
+    borderWidth: 1.5,
+    borderColor: '#e5b150',
+    paddingVertical: 15,
+    borderRadius: 14,
     alignItems: 'center',
   },
   secondaryButtonText: {
     color: '#ffffff',
-    fontWeight: '600',
+    fontWeight: 'bold',
     fontSize: 15,
     letterSpacing: 0.5,
   },
