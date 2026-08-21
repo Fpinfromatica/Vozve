@@ -1,170 +1,345 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ImageBackground,
+  SafeAreaView,
+  StatusBar,
+  ScrollView,
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import { ShieldCheck, Activity, Radio, AlertTriangle } from 'lucide-react-native'; // o tus iconos
 
 export default function WelcomeScreen() {
   const router = useRouter();
 
   return (
-    <View style={styles.container}>
-      {/* Cabecera / Identidad */}
-      <View style={styles.header}>
-        <View style={styles.logoRow}>
-          <Text style={styles.logoText}>VOZVE</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>● VENEZUELA EN TIEMPO REAL</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor="#02040a" />
+
+      {/* Contenedor Principal */}
+      <View style={styles.container}>
+        {/* Fondo con degradado y estrellas */}
+        <View style={styles.backgroundGlow} />
+
+        {/* 1. SECTOR SUPERIOR: Bandera de Venezuela ondeando */}
+        <View style={styles.flagContainer}>
+          <View style={styles.flagRibbon}>
+            <View style={[styles.flagStripe, { backgroundColor: '#facc15' }]} />
+            <View style={[styles.flagStripe, { backgroundColor: '#1d4ed8' }]}>
+              {/* Estrellas decorativas en la franja azul */}
+              <View style={styles.starsRow}>
+                {['★', '★', '★', '★', '★', '★', '★', '★'].map((star, i) => (
+                  <Text key={i} style={styles.starText}>
+                    {star}
+                  </Text>
+                ))}
+              </View>
+            </View>
+            <View style={[styles.flagStripe, { backgroundColor: '#dc2626' }]} />
           </View>
-        </View>
-      </View>
-
-      {/* Contenido Central */}
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.metricsPill}>
-          <Text style={styles.metricsText}>24 EVENTOS ACTIVOS  ·  248 EN VIVO</Text>
+          <View style={styles.flagShadow} />
         </View>
 
-        <Text style={styles.heroTitle}>
-          Plataforma de monitoreo y alertas ciudadanas en tiempo real
-        </Text>
+        {/* 2. SECTOR CENTRAL: Emblema / Escudo Dorado en "V" con Estrella Radiante */}
+        <View style={styles.emblemWrapper}>
+          {/* Resplandor dorado de fondo */}
+          <View style={styles.sunGlow} />
 
-        <Text style={styles.heroSubtitle}>
-          Reportes verificados por la comunidad sobre servicios básicos, vialidad y transmisiones en vivo.
-        </Text>
-      </ScrollView>
+          {/* Estrella radiante de 8 puntas */}
+          <View style={styles.starburst}>
+            <View style={styles.starPointCenter} />
+            <Text style={styles.starburstGlyph}>✦</Text>
+          </View>
 
-      {/* ZONA INFERIOR: Iniciar Sesión o Registrarse */}
-      <View style={styles.bottomSection}>
-        <TouchableOpacity
-          style={styles.btnRegister}
-          onPress={() => router.push('/(auth)/register')}
-        >
-          <Text style={styles.btnRegisterText}>Registrarse</Text>
-        </TouchableOpacity>
+          {/* Escudo en V dorado tricolor */}
+          <View style={styles.vShield}>
+            <View style={styles.vWingLeft} />
+            <View style={styles.vWingRight} />
+            <View style={styles.vCenterCore}>
+              {/* Franjas Tricolor dentro de la V */}
+              <View style={styles.vCoreYellow} />
+              <View style={styles.vCoreBlue}>
+                <Text style={styles.vStars}>★ ★ ★ ★ ★ ★ ★ ★</Text>
+              </View>
+              <View style={styles.vCoreRed} />
+            </View>
+          </View>
 
-        <TouchableOpacity
-          style={styles.btnLogin}
-          onPress={() => router.push('/(auth)/login')}
-        >
-          <Text style={styles.btnLoginText}>Iniciar Sesión</Text>
-        </TouchableOpacity>
+          <Text style={styles.brandTitle}>VOZVE</Text>
+          <Text style={styles.brandSubtitle}>VENEZUELA EN TIEMPO REAL</Text>
+        </View>
 
-        {/* Acceso opcional como invitado */}
-        <TouchableOpacity
-          style={styles.btnGuest}
-          onPress={() => router.push('/(tabs)')}
-        >
-          <Text style={styles.btnGuestText}>Explorar mapa sin cuenta →</Text>
-        </TouchableOpacity>
+        {/* 3. SECTOR INFERIOR: Botones de Iniciar Sesión y Registrarse */}
+        <View style={styles.bottomSection}>
+          {/* Botón Principal Dorado: Empezar / Registrarse */}
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.btnGold}
+            onPress={() => router.push('/(auth)/register')}
+          >
+            <Text style={styles.btnGoldText}>REGISTRARSE</Text>
+          </TouchableOpacity>
+
+          {/* Botón Secundario: Iniciar Sesión */}
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.btnLogin}
+            onPress={() => router.push('/(auth)/login')}
+          >
+            <Text style={styles.btnLoginText}>INICIAR SESIÓN</Text>
+          </TouchableOpacity>
+
+          {/* Acceso directo sin cuenta */}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={styles.btnGuest}
+            onPress={() => router.push('/(tabs)')}
+          >
+            <Text style={styles.btnGuestText}>Explorar mapa en vivo sin cuenta →</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#030712',
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#020611',
     justifyContent: 'space-between',
-    padding: 20,
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    position: 'relative',
+    overflow: 'hidden',
   },
-  header: {
-    paddingTop: 40,
+  backgroundGlow: {
+    position: 'absolute',
+    top: '30%',
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(217, 119, 6, 0.12)',
+    filter: 'blur(60px)',
+  },
+
+  /* Bandera ondeada superior */
+  flagContainer: {
+    width: '120%',
+    height: 110,
+    transform: [{ rotate: '-12deg' }, { translateY: -30 }],
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.8,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  flagRibbon: {
+    flex: 1,
+    flexDirection: 'column',
+  },
+  flagStripe: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  logoRow: {
+  starsRow: {
     flexDirection: 'row',
+    gap: 4,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 10,
   },
-  logoText: {
+  starText: {
+    color: '#ffffff',
+    fontSize: 8,
+    fontWeight: 'bold',
+  },
+  flagShadow: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 25,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+
+  /* Emblema Dorado Central */
+  emblemWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 'auto',
+  },
+  sunGlow: {
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: 'rgba(234, 179, 8, 0.22)',
+  },
+  starburst: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: -25,
+    zIndex: 2,
+  },
+  starPointCenter: {
+    position: 'absolute',
+    width: 70,
+    height: 70,
+    backgroundColor: 'rgba(250, 204, 21, 0.4)',
+    borderRadius: 35,
+    transform: [{ scale: 1.2 }],
+  },
+  starburstGlyph: {
+    color: '#fef08a',
+    fontSize: 90,
+    fontWeight: '900',
+    textShadowColor: 'rgba(234, 179, 8, 0.9)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 20,
+  },
+
+  /* V Shield */
+  vShield: {
+    width: 150,
+    height: 150,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    zIndex: 3,
+  },
+  vWingLeft: {
+    position: 'absolute',
+    left: 10,
+    top: 10,
+    width: 26,
+    height: 120,
+    backgroundColor: '#ca8a04',
+    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 6,
+    transform: [{ rotate: '-32deg' }],
+    borderWidth: 2,
+    borderColor: '#fef08a',
+  },
+  vWingRight: {
+    position: 'absolute',
+    right: 10,
+    top: 10,
+    width: 26,
+    height: 120,
+    backgroundColor: '#ca8a04',
+    borderTopRightRadius: 10,
+    borderBottomRightRadius: 6,
+    transform: [{ rotate: '32deg' }],
+    borderWidth: 2,
+    borderColor: '#fef08a',
+  },
+  vCenterCore: {
+    width: 70,
+    height: 85,
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#eab308',
+    marginTop: 35,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 6,
+  },
+  vCoreYellow: {
+    flex: 1,
+    backgroundColor: '#eab308',
+  },
+  vCoreBlue: {
+    flex: 1,
+    backgroundColor: '#1d4ed8',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  vStars: {
+    color: '#ffffff',
+    fontSize: 6,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  vCoreRed: {
+    flex: 1,
+    backgroundColor: '#b91c1c',
+  },
+
+  brandTitle: {
     color: '#ffffff',
     fontSize: 28,
     fontWeight: '900',
-    letterSpacing: 1,
+    letterSpacing: 4,
+    marginTop: 20,
   },
-  badge: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    borderColor: '#10b981',
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  badgeText: {
-    color: '#34d399',
-    fontSize: 10,
+  brandSubtitle: {
+    color: '#38bdf8',
+    fontSize: 11,
     fontWeight: '700',
+    letterSpacing: 2,
+    marginTop: 4,
   },
-  content: {
+
+  /* Botones Inferiores */
+  bottomSection: {
+    width: '100%',
+    maxWidth: 380,
+    gap: 12,
+    paddingBottom: 15,
+  },
+  btnGold: {
+    backgroundColor: '#eab308',
+    paddingVertical: 15,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
+    borderWidth: 2,
+    borderColor: '#fef08a',
+    shadowColor: '#eab308',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.7,
+    shadowRadius: 16,
+    elevation: 8,
   },
-  metricsPill: {
-    backgroundColor: '#0f172a',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#1e293b',
-  },
-  metricsText: {
-    color: '#06b6d4',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  heroTitle: {
-    color: '#ffffff',
-    fontSize: 24,
-    fontWeight: '800',
-    textAlign: 'center',
-    marginBottom: 12,
-    lineHeight: 32,
-  },
-  heroSubtitle: {
-    color: '#94a3b8',
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 22,
-    maxWidth: 340,
-  },
-  bottomSection: {
-    gap: 12,
-    paddingBottom: 20,
-  },
-  btnRegister: {
-    backgroundColor: '#0891b2',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  btnRegisterText: {
-    color: '#ffffff',
-    fontWeight: '700',
-    fontSize: 16,
+  btnGoldText: {
+    color: '#1a1300',
+    fontWeight: '900',
+    fontSize: 15,
+    letterSpacing: 2,
   },
   btnLogin: {
-    backgroundColor: '#1e293b',
+    backgroundColor: 'rgba(15, 23, 42, 0.85)',
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 30,
     alignItems: 'center',
-    borderWidth: 1,
+    justifyContent: 'center',
+    borderWidth: 1.5,
     borderColor: '#334155',
   },
   btnLoginText: {
-    color: '#ffffff',
-    fontWeight: '600',
-    fontSize: 15,
+    color: '#f8fafc',
+    fontWeight: '800',
+    fontSize: 14,
+    letterSpacing: 1.5,
   },
   btnGuest: {
-    paddingVertical: 8,
+    paddingVertical: 6,
     alignItems: 'center',
   },
   btnGuestText: {
     color: '#38bdf8',
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
