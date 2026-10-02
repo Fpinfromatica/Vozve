@@ -10,32 +10,68 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { supabase } from '../../core/supabase';
 
 export default function LoginScreen() {
   const router = useRouter();
 
-  const [identifier, setIdentifier] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    if (!identifier.trim() || !password.trim()) {
-      alert('Por favor ingresa tu correo/alias y tu contraseña.');
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      alert('Por favor ingresa tu correo y contraseña.');
       return;
     }
 
     setIsLoading(true);
 
-    // Simulación de inicio de sesión y verificación de baneo
-    setTimeout(() => {
+    try {
+      // 1. Iniciar sesión con Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
+      });
+
+      if (error) {
+        alert(`Error al iniciar sesión: ${error.message}`);
+        setIsLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        // 2. Comprobar si el usuario está baneado por noticias falsas
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('is_banned, ban_reason, alias, is_verified')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profile?.is_banned) {
+          // Si está baneado, cerramos la sesión de inmediato
+          await supabase.auth.signOut();
+          alert(
+            `ACCESO DENEGADO:\nTu cuenta ha sido suspendida de VozVe por infracción a la política de veracidad.\nMotivo: ${
+              profile.ban_reason || 'Reportes falsos reiterados'
+            }`
+          );
+          setIsLoading(false);
+          return;
+        }
+
+        alert(`¡Bienvenido de nuevo, ${profile?.alias || 'Ciudadano'}!`);
+        router.replace('/(tabs)' as any);
+      }
+    } catch (err: any) {
+      alert(`Error de conexión: ${err.message || 'Inténtalo de nuevo'}`);
+    } finally {
       setIsLoading(false);
-      // Validación de acceso seguro
-      alert('¡Bienvenido de nuevo a VozVe!');
-      router.replace('/(tabs)' as any);
-    }, 800);
+    }
   };
 
   return (
@@ -49,7 +85,7 @@ export default function LoginScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Encabezado con Botón Volver */}
+          {/* Encabezado */}
           <View style={styles.header}>
             <TouchableOpacity
               onPress={() => router.back()}
@@ -60,39 +96,37 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             <View style={styles.badgeSecure}>
-              <Text style={styles.badgeText}>🔒 Acceso Seguro</Text>
+              <Text style={styles.badgeText}>🔒 Acceso Cifrado</Text>
             </View>
           </View>
 
-          {/* Tarjeta Principal centrada (adaptada para PC y Móvil) */}
+          {/* Tarjeta Principal */}
           <View style={styles.card}>
-            {/* Título y Subtítulo */}
             <View style={styles.titleContainer}>
               <Text style={styles.brandTitle}>VOZVE</Text>
               <Text style={styles.mainTitle}>Iniciar Sesión Ciudadana</Text>
               <Text style={styles.subTitle}>
-                Accede para consultar el mapa en tiempo real, publicar reportes verificados y participar en tu comunidad.
+                Accede para consultar el mapa en tiempo real, publicar incidencias verificadas y monitorear tu zona.
               </Text>
             </View>
 
-            {/* Aviso informativo de cuentas verificadas */}
             <View style={styles.infoBox}>
               <Text style={styles.infoText}>
-                🛡️ Recuerda: Sólo las cuentas verificadas y con reputación activa pueden emitir alertas públicas.
+                🛡️ Red con tolerancia cero a la desinformación: las cuentas con reportes falsos son suspendidas automáticamente.
               </Text>
             </View>
 
-            {/* Campo: Correo o Seudónimo */}
+            {/* Campo: Correo */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Correo Electrónico o Seudónimo *</Text>
+              <Text style={styles.label}>Correo Electrónico *</Text>
               <TextInput
                 style={styles.input}
-                placeholder="tu_correo@ejemplo.com o @alias"
+                placeholder="tu_correo@ejemplo.com"
                 placeholderTextColor="#64748b"
                 keyboardType="email-address"
                 autoCapitalize="none"
-                value={identifier}
-                onChangeText={setIdentifier}
+                value={email}
+                onChangeText={setEmail}
               />
             </View>
 
@@ -116,24 +150,18 @@ export default function LoginScreen() {
               />
             </View>
 
-            {/* Enlace recuperar clave */}
-            <TouchableOpacity
-              style={styles.forgotPassContainer}
-              onPress={() => alert('Se enviarán instrucciones a tu correo para restablecer la contraseña.')}
-            >
-              <Text style={styles.forgotPassText}>¿Olvidaste tu contraseña?</Text>
-            </TouchableOpacity>
-
-            {/* Botón Principal: Iniciar Sesión */}
+            {/* Botón Principal */}
             <TouchableOpacity
               style={[styles.btnPrimary, isLoading && { opacity: 0.7 }]}
               activeOpacity={0.85}
               onPress={handleLogin}
               disabled={isLoading}
             >
-              <Text style={styles.btnPrimaryText}>
-                {isLoading ? 'VERIFICANDO CREDENCIALES...' : 'INICIAR SESIÓN'}
-              </Text>
+              {isLoading ? (
+                <ActivityIndicator color="#0f172a" />
+              ) : (
+                <Text style={styles.btnPrimaryText}>INICIAR SESIÓN</Text>
+              )}
             </TouchableOpacity>
 
             {/* Divisor */}
@@ -143,7 +171,7 @@ export default function LoginScreen() {
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Acceso directo sin cuenta */}
+            {/* Explorar sin cuenta */}
             <TouchableOpacity
               style={styles.btnGuest}
               activeOpacity={0.7}
@@ -216,7 +244,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#0f172a',
-    borderRadius: 24,
+    borderRadius: 22,
     padding: 24,
     borderWidth: 1,
     borderColor: '#1e293b',
@@ -243,7 +271,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 24,
     fontWeight: '900',
-    letterSpacing: 0.5,
     marginBottom: 6,
   },
   subTitle: {
@@ -263,7 +290,6 @@ const styles = StyleSheet.create({
     color: '#facc15',
     fontSize: 11.5,
     lineHeight: 16,
-    fontWeight: '500',
   },
   inputGroup: {
     marginBottom: 16,
@@ -295,22 +321,13 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 14,
   },
-  forgotPassContainer: {
-    alignSelf: 'flex-end',
-    marginBottom: 20,
-    marginTop: -4,
-  },
-  forgotPassText: {
-    color: '#38bdf8',
-    fontSize: 12,
-    fontWeight: '600',
-  },
   btnPrimary: {
     backgroundColor: '#eab308',
     borderRadius: 14,
     paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 8,
     shadowColor: '#eab308',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
