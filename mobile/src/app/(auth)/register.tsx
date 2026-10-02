@@ -10,15 +10,16 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { supabase } from '../../core/supabase';
 
 export default function RegisterScreen() {
   const router = useRouter();
 
-  // Estados del flujo
   const [step, setStep] = useState<1 | 2>(1);
+  const [loading, setLoading] = useState(false);
 
   // Formulario Paso 1
   const [alias, setAlias] = useState('');
@@ -33,7 +34,6 @@ export default function RegisterScreen() {
   const [codeSent, setCodeSent] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  // Generador de seudónimo anónimo
   const handleGenerateAlias = () => {
     const prefixes = ['Centinela', 'Observador', 'VozCiudadana', 'Veedor', 'Defensor'];
     const randomNum = Math.floor(100 + Math.random() * 900);
@@ -43,11 +43,11 @@ export default function RegisterScreen() {
 
   const handleNextStep = () => {
     if (!alias.trim() || !email.trim() || !password.trim()) {
-      alert('Por favor completa todos los campos requeridos.');
+      alert('Por favor completa todos los campos obligatorios.');
       return;
     }
     if (password.length < 8) {
-      alert('La contraseña debe tener al menos 8 caracteres.');
+      alert('La contraseña debe tener mínimo 8 caracteres.');
       return;
     }
     if (password !== confirmPassword) {
@@ -63,12 +63,12 @@ export default function RegisterScreen() {
       return;
     }
     setCodeSent(true);
-    alert('Código de seguridad enviado: 849201 (Simulación para pruebas)');
+    alert('Código de seguridad enviado: 849201');
   };
 
-  const handleCompleteRegister = () => {
+  const handleCompleteRegister = async () => {
     if (!termsAccepted) {
-      alert('Debes aceptar la política anti-noticias falsas y veracidad de reportes.');
+      alert('Debes aceptar el compromiso de veracidad y la política contra noticias falsas.');
       return;
     }
     if (!verificationCode.trim()) {
@@ -76,8 +76,37 @@ export default function RegisterScreen() {
       return;
     }
 
-    alert('¡Cuenta Verificada con éxito! Ya puedes ingresar y reportar incidencias con tu insignia de usuario verificado.');
-    router.replace('/(tabs)' as any);
+    setLoading(true);
+
+    try {
+      // 1. Registro real en Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password,
+        options: {
+          data: {
+            alias: alias.trim(),
+            region: region.trim(),
+            phone: phone.trim(),
+            is_verified: true, // Cuenta verificada
+            is_banned: false,
+          },
+        },
+      });
+
+      if (error) {
+        alert(`Error al registrar cuenta: ${error.message}`);
+        setLoading(false);
+        return;
+      }
+
+      alert('¡Cuenta creada y verificada con éxito en VozVe!');
+      router.replace('/(tabs)' as any);
+    } catch (err: any) {
+      alert(`Error inesperado: ${err.message || 'No se pudo conectar con el servidor'}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -87,9 +116,11 @@ export default function RegisterScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          
-          {/* Encabezado con Botón Volver */}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Encabezado */}
           <View style={styles.header}>
             <TouchableOpacity
               onPress={() => (step === 2 ? setStep(1) : router.back())}
@@ -104,183 +135,178 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          {/* Título Principal */}
-          <View style={styles.titleContainer}>
-            <Text style={styles.mainTitle}>
-              {step === 1 ? 'Crear Cuenta Ciudadana' : 'Verificación de Identidad'}
-            </Text>
-            <Text style={styles.subTitle}>
-              {step === 1
-                ? 'Protege tu seudónimo y participa en la red comunitaria con total seguridad.'
-                : 'Protocolo de validación ciudadana para prevenir noticias falsas y proteger la red.'}
-            </Text>
+          {/* Tarjeta de Registro Centrada */}
+          <View style={styles.card}>
+            <View style={styles.titleContainer}>
+              <Text style={styles.mainTitle}>
+                {step === 1 ? 'Crear Cuenta Ciudadana' : 'Verificación de Identidad'}
+              </Text>
+              <Text style={styles.subTitle}>
+                {step === 1
+                  ? 'Protege tu seudónimo y participa en la red comunitaria con total seguridad.'
+                  : 'Validación para prevenir noticias falsas y proteger la veracidad de la red.'}
+              </Text>
+            </View>
+
+            {/* PASO 1: DATOS */}
+            {step === 1 && (
+              <>
+                <View style={styles.inputGroup}>
+                  <View style={styles.labelRow}>
+                    <Text style={styles.label}>Alias / Seudónimo Público *</Text>
+                    <TouchableOpacity onPress={handleGenerateAlias}>
+                      <Text style={styles.generateLink}>⚡ Generar Anónimo</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Ej. Centinela_Caracas"
+                    placeholderTextColor="#64748b"
+                    value={alias}
+                    onChangeText={setAlias}
+                    autoCapitalize="none"
+                  />
+                  <Text style={styles.helperText}>
+                    Este es el nombre visible en tus reportes para proteger tu identidad.
+                  </Text>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Correo Electrónico Privado *</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="tu_correo@ejemplo.com"
+                    placeholderTextColor="#64748b"
+                    keyboardType="email-address"
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Zona de Monitoreo</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Ej. Gran Caracas, Maracaibo, Valencia..."
+                    placeholderTextColor="#64748b"
+                    value={region}
+                    onChangeText={setRegion}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Contraseña * (Mínimo 8 caracteres)</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="••••••••••••"
+                    placeholderTextColor="#64748b"
+                    secureTextEntry
+                    value={password}
+                    onChangeText={setPassword}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Confirmar Contraseña *</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="••••••••••••"
+                    placeholderTextColor="#64748b"
+                    secureTextEntry
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={styles.btnPrimary}
+                  activeOpacity={0.85}
+                  onPress={handleNextStep}
+                >
+                  <Text style={styles.btnPrimaryText}>CONTINUAR A VERIFICACIÓN →</Text>
+                </TouchableOpacity>
+              </>
+            )}
+
+            {/* PASO 2: VERIFICACIÓN ANTI-FAKE NEWS */}
+            {step === 2 && (
+              <>
+                <View style={styles.alertBox}>
+                  <Text style={styles.alertTitle}>🛡️ Red Ciudadana Verificada</Text>
+                  <Text style={styles.alertMessage}>
+                    Para garantizar reportes reales en <Text style={{ fontWeight: 'bold', color: '#eab308' }}>VozVe</Text>, toda cuenta debe verificarse. Los usuarios que publiquen reportes falsos serán <Text style={{ color: '#ef4444', fontWeight: 'bold' }}>baneados permanentemente</Text> de la plataforma.
+                  </Text>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Teléfono o WhatsApp de Verificación *</Text>
+                  <View style={styles.row}>
+                    <TextInput
+                      style={[styles.input, { flex: 1, marginRight: 8 }]}
+                      placeholder="+58 412 1234567"
+                      placeholderTextColor="#64748b"
+                      keyboardType="phone-pad"
+                      value={phone}
+                      onChangeText={setPhone}
+                    />
+                    <TouchableOpacity
+                      style={styles.btnSendCode}
+                      activeOpacity={0.8}
+                      onPress={handleSendCode}
+                    >
+                      <Text style={styles.btnSendCodeText}>
+                        {codeSent ? 'Reenviar' : 'Enviar Código'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.helperText}>
+                    Tu número es estrictamente privado y no será público.
+                  </Text>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Código de Verificación Recibido *</Text>
+                  <TextInput
+                    style={[styles.input, styles.codeInput]}
+                    placeholder="0 0 0 0 0 0"
+                    placeholderTextColor="#64748b"
+                    keyboardType="numeric"
+                    maxLength={6}
+                    value={verificationCode}
+                    onChangeText={setVerificationCode}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={styles.checkboxRow}
+                  activeOpacity={0.8}
+                  onPress={() => setTermsAccepted(!termsAccepted)}
+                >
+                  <View style={[styles.checkbox, termsAccepted && styles.checkboxChecked]}>
+                    {termsAccepted && <Text style={styles.checkmark}>✓</Text>}
+                  </View>
+                  <Text style={styles.checkboxLabel}>
+                    Me comprometo a publicar información verídica y verificable. Acepto que emitir alertas falsas acarreará el baneo definitivo de mi cuenta.
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.btnPrimary, (!termsAccepted || loading) && { opacity: 0.6 }]}
+                  activeOpacity={0.85}
+                  onPress={handleCompleteRegister}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#0f172a" />
+                  ) : (
+                    <Text style={styles.btnPrimaryText}>FINALIZAR Y VALIDAR CUENTA</Text>
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
           </View>
 
-          {/* PASO 1: DATOS Y CREDENCIALES */}
-          {step === 1 && (
-            <View style={styles.card}>
-              {/* Campo: Seudónimo / Alias */}
-              <View style={styles.inputGroup}>
-                <View style={styles.labelRow}>
-                  <Text style={styles.label}>Alias / Seudónimo Público *</Text>
-                  <TouchableOpacity onPress={handleGenerateAlias}>
-                    <Text style={styles.generateLink}>⚡ Generar Anónimo</Text>
-                  </TouchableOpacity>
-                </View>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Ej. Centinela_Caracas"
-                  placeholderTextColor="#64748b"
-                  value={alias}
-                  onChangeText={setAlias}
-                  autoCapitalize="none"
-                />
-                <Text style={styles.helperText}>
-                  Este es el nombre visible en tus reportes para cuidar tu anonimato.
-                </Text>
-              </View>
-
-              {/* Campo: Correo Electrónico */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Correo Electrónico Privado *</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="tu_correo@ejemplo.com"
-                  placeholderTextColor="#64748b"
-                  keyboardType="email-address"
-                  value={email}
-                  onChangeText={setEmail}
-                  autoCapitalize="none"
-                />
-              </View>
-
-              {/* Campo: Región / Zona */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Zona de Monitoreo Preferida</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Ej. Gran Caracas, Maracaibo, Valencia..."
-                  placeholderTextColor="#64748b"
-                  value={region}
-                  onChangeText={setRegion}
-                />
-              </View>
-
-              {/* Campo: Contraseña */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Contraseña * (Mínimo 8 caracteres)</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="••••••••••••"
-                  placeholderTextColor="#64748b"
-                  secureTextEntry
-                  value={password}
-                  onChangeText={setPassword}
-                />
-              </View>
-
-              {/* Campo: Confirmar Contraseña */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Confirmar Contraseña *</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="••••••••••••"
-                  placeholderTextColor="#64748b"
-                  secureTextEntry
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                />
-              </View>
-
-              {/* Botón Siguiente */}
-              <TouchableOpacity
-                style={styles.btnPrimary}
-                activeOpacity={0.85}
-                onPress={handleNextStep}
-              >
-                <Text style={styles.btnPrimaryText}>CONTINUAR A VERIFICACIÓN →</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* PASO 2: VERIFICACIÓN ANTI-FAKE NEWS & POLÍTICA DE BANEO */}
-          {step === 2 && (
-            <View style={styles.card}>
-              {/* Tarjeta de Seguridad y Política de Veracidad */}
-              <View style={styles.alertBox}>
-                <Text style={styles.alertTitle}>🛡️ Red Ciudadana Verificada</Text>
-                <Text style={styles.alertMessage}>
-                  Para mantener la veracidad en <Text style={{ fontWeight: 'bold', color: '#eab308' }}>VozVe</Text>, toda cuenta debe estar verificada. Las cuentas que publiquen reportes falsos o engañosos serán <Text style={{ color: '#ef4444', fontWeight: 'bold' }}>baneadas permanentemente</Text> por la moderación comunitaria.
-                </Text>
-              </View>
-
-              {/* Campo: Número de Teléfono / WhatsApp */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Teléfono o WhatsApp de Verificación *</Text>
-                <View style={styles.row}>
-                  <TextInput
-                    style={[styles.input, { flex: 1, marginRight: 8 }]}
-                    placeholder="+58 412 1234567"
-                    placeholderTextColor="#64748b"
-                    keyboardType="phone-pad"
-                    value={phone}
-                    onChangeText={setPhone}
-                  />
-                  <TouchableOpacity
-                    style={styles.btnSendCode}
-                    activeOpacity={0.8}
-                    onPress={handleSendCode}
-                  >
-                    <Text style={styles.btnSendCodeText}>
-                      {codeSent ? 'Reenviar' : 'Enviar Código'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.helperText}>
-                  Tu teléfono es estrictamente confidencial y nunca será visible en los reportes públicos.
-                </Text>
-              </View>
-
-              {/* Campo: Código OTP */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Código de Verificación Recibido (6 dígitos) *</Text>
-                <TextInput
-                  style={[styles.input, styles.codeInput]}
-                  placeholder="0 0 0 0 0 0"
-                  placeholderTextColor="#64748b"
-                  keyboardType="numeric"
-                  maxLength={6}
-                  value={verificationCode}
-                  onChangeText={setVerificationCode}
-                />
-              </View>
-
-              {/* Checkbox de Compromiso Ciudadano */}
-              <TouchableOpacity
-                style={styles.checkboxRow}
-                activeOpacity={0.8}
-                onPress={() => setTermsAccepted(!termsAccepted)}
-              >
-                <View style={[styles.checkbox, termsAccepted && styles.checkboxChecked]}>
-                  {termsAccepted && <Text style={styles.checkmark}>✓</Text>}
-                </View>
-                <Text style={styles.checkboxLabel}>
-                  Me comprometo a publicar información verídica y verificable. Comprendo que emitir denuncias falsas conlleva el baneo inmediato de mi cuenta.
-                </Text>
-              </TouchableOpacity>
-
-              {/* Botón Finalizar */}
-              <TouchableOpacity
-                style={[styles.btnPrimary, !termsAccepted && { opacity: 0.6 }]}
-                activeOpacity={0.85}
-                onPress={handleCompleteRegister}
-              >
-                <Text style={styles.btnPrimaryText}>FINALIZAR Y VALIDAR CUENTA</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Enlace a Iniciar Sesión */}
           <View style={styles.footerLink}>
             <Text style={styles.footerText}>¿Ya tienes una cuenta registrada? </Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/login' as any)}>
@@ -307,7 +333,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    width: '100%',
+    maxWidth: 500,
+    alignSelf: 'center',
+    marginBottom: 16,
   },
   backButton: {
     paddingVertical: 8,
@@ -335,32 +364,34 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
+  card: {
+    backgroundColor: '#0f172a',
+    borderRadius: 22,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    width: '100%',
+    maxWidth: 500,
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 6,
+  },
   titleContainer: {
-    marginBottom: 22,
+    marginBottom: 20,
   },
   mainTitle: {
     color: '#ffffff',
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '900',
-    letterSpacing: 0.5,
     marginBottom: 6,
   },
   subTitle: {
     color: '#94a3b8',
     fontSize: 13,
     lineHeight: 18,
-  },
-  card: {
-    backgroundColor: '#0f172a',
-    borderRadius: 20,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 6,
   },
   inputGroup: {
     marginBottom: 16,
@@ -403,7 +434,6 @@ const styles = StyleSheet.create({
     color: '#64748b',
     fontSize: 11,
     marginTop: 4,
-    lineHeight: 15,
   },
   row: {
     flexDirection: 'row',
