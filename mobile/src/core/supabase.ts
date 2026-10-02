@@ -1,4 +1,3 @@
-import 'react-native-url-polyfill/auto';
 import { createClient } from '@supabase/supabase-js';
 
 // URL oficial de tu proyecto Vozve
