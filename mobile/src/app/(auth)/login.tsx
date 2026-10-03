@@ -32,7 +32,7 @@ export default function LoginScreen() {
     setIsLoading(true);
 
     try {
-      // 1. Iniciar sesión con Supabase Auth
+      // Iniciar sesión con Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password,
@@ -45,26 +45,31 @@ export default function LoginScreen() {
       }
 
       if (data.user) {
-        // 2. Comprobar si el usuario está baneado por noticias falsas
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('is_banned, ban_reason, alias, is_verified')
-          .eq('id', data.user.id)
-          .single();
+        // Consultar estado de baneo de forma segura
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_banned, ban_reason, alias')
+            .eq('id', data.user.id)
+            .maybeSingle();
 
-        if (profile?.is_banned) {
-          // Si está baneado, cerramos la sesión de inmediato
-          await supabase.auth.signOut();
-          alert(
-            `ACCESO DENEGADO:\nTu cuenta ha sido suspendida de VozVe por infracción a la política de veracidad.\nMotivo: ${
-              profile.ban_reason || 'Reportes falsos reiterados'
-            }`
-          );
-          setIsLoading(false);
-          return;
+          if (profile?.is_banned) {
+            await supabase.auth.signOut();
+            alert(
+              `ACCESO DENEGADO:\nTu cuenta ha sido suspendida de VozVe.\nMotivo: ${
+                profile.ban_reason || 'Reportes falsos'
+              }`
+            );
+            setIsLoading(false);
+            return;
+          }
+        } catch (e) {
+          // Si la tabla profile aún no sincronizó, dejamos pasar al usuario autenticado
+          console.log('Validación secundaria de perfil omitida');
         }
 
-        alert(`¡Bienvenido de nuevo, ${profile?.alias || 'Ciudadano'}!`);
+        alert('¡Inicio de sesión exitoso!');
+        // Navegación directa al panel de reportes
         router.replace('/(tabs)' as any);
       }
     } catch (err: any) {
@@ -85,7 +90,6 @@ export default function LoginScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Encabezado */}
           <View style={styles.header}>
             <TouchableOpacity
               onPress={() => router.back()}
@@ -100,23 +104,21 @@ export default function LoginScreen() {
             </View>
           </View>
 
-          {/* Tarjeta Principal */}
           <View style={styles.card}>
             <View style={styles.titleContainer}>
               <Text style={styles.brandTitle}>VOZVE</Text>
               <Text style={styles.mainTitle}>Iniciar Sesión Ciudadana</Text>
               <Text style={styles.subTitle}>
-                Accede para consultar el mapa en tiempo real, publicar incidencias verificadas y monitorear tu zona.
+                Accede para consultar el mapa en tiempo real y publicar incidencias verificadas.
               </Text>
             </View>
 
             <View style={styles.infoBox}>
               <Text style={styles.infoText}>
-                🛡️ Red con tolerancia cero a la desinformación: las cuentas con reportes falsos son suspendidas automáticamente.
+                🛡️ Tolerancia cero a la desinformación: las cuentas con reportes falsos son suspendidas automáticamente.
               </Text>
             </View>
 
-            {/* Campo: Correo */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Correo Electrónico *</Text>
               <TextInput
@@ -130,7 +132,6 @@ export default function LoginScreen() {
               />
             </View>
 
-            {/* Campo: Contraseña */}
             <View style={styles.inputGroup}>
               <View style={styles.labelRow}>
                 <Text style={styles.label}>Contraseña *</Text>
@@ -150,7 +151,6 @@ export default function LoginScreen() {
               />
             </View>
 
-            {/* Botón Principal */}
             <TouchableOpacity
               style={[styles.btnPrimary, isLoading && { opacity: 0.7 }]}
               activeOpacity={0.85}
@@ -164,14 +164,12 @@ export default function LoginScreen() {
               )}
             </TouchableOpacity>
 
-            {/* Divisor */}
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
               <Text style={styles.dividerText}>O</Text>
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Explorar sin cuenta */}
             <TouchableOpacity
               style={styles.btnGuest}
               activeOpacity={0.7}
@@ -183,7 +181,6 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Enlace al Registro */}
           <View style={styles.footerLink}>
             <Text style={styles.footerText}>¿Aún no tienes una cuenta? </Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/register' as any)}>
